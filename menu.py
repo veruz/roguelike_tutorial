@@ -32,6 +32,7 @@ def menu(con, root, header, options, width, screen_width, screen_height):
     y = screen_height // 2 - height // 2
     root.blit(window, x, y, width, height, 0, 0)
 
+
 def inventory_menu(con, root, header, inventory, inventory_width, screen_width, screen_height):
     # show a menu with all items
     if len(inventory.items) == 0:
