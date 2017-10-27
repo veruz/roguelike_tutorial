@@ -7,16 +7,18 @@ from components.ai import BasicMonster
 from components.fighter import Fighter
 from components.item import Item
 from render_functions import RenderOrder
-from item_functions import heal
+from item_functions import heal, cast_lightning, cast_fireball
+from game_messages import Message
 
 
 class GameMap(Map):
     def __init__(self, width, height):
         super().__init__(width, height)
-        self.explored = [[False for y in range(height)] for x in range (width)]
+        self.explored = [[False for y in range(height)] for x in range(width)]
+
 
 class Rect:
-    def __init__(self, x ,y , w, h):
+    def __init__(self, x, y, w, h):
         self.x1 = x
         self.y1 = y
         self.x2 = x + w
@@ -29,8 +31,7 @@ class Rect:
 
     def intersect(self, other):
         # true if rect intersects with another
-        return(self.x1 <= other.x2 and self.x2 >= other.x1 and self.y1 <= other.y2 and self.y2 >= other.y1)
-
+        return (self.x1 <= other.x2 and self.x2 >= other.x1 and self.y1 <= other.y2 and self.y2 >= other.y1)
 
 
 def create_room(game_map, room):
@@ -43,8 +44,9 @@ def create_room(game_map, room):
 
 def create_h_tunnel(game_map, x1, x2, y):
     for x in range(min(x1, x2), max(x1, x2)):
-        game_map.walkable[x,y] = True
+        game_map.walkable[x, y] = True
         game_map.transparent[x, y] = True
+
 
 def create_v_tunnel(game_map, y1, y2, x):
     for y in range(min(y1, y2), max(y1, y2)):
@@ -59,34 +61,51 @@ def place_entities(room, entities, max_monsters_per_room, max_items_per_room, co
 
     for i in range(number_of_monsters):
         # random location  in room
-        x = randint(room.x1 + 1, room.x2 -1)
-        y = randint(room.y1 +1, room.y2 -1)
+        x = randint(room.x1 + 1, room.x2 - 1)
+        y = randint(room.y1 + 1, room.y2 - 1)
 
         if not any([entity for entity in entities if entity.x == x and entity.y == y]):
             if randint(0, 100) < 80:
                 fighter_component = Fighter(hp=10, defense=0, power=3)
                 ai_component = BasicMonster()
 
-                monster = Entity(x, y, 'o', colors.get('desaturated_green'), 'Orc', blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component, ai=ai_component)
+                monster = Entity(x, y, 'o', colors.get('desaturated_green'), 'Orc', blocks=True,
+                                 render_order=RenderOrder.ACTOR, fighter=fighter_component, ai=ai_component)
             else:
                 fighter_component = Fighter(hp=16, defense=1, power=4)
                 ai_component = BasicMonster()
 
-                monster = Entity(x, y, 'T', colors.get('darker_green'), 'Troll', blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component, ai=ai_component)
+                monster = Entity(x, y, 'T', colors.get('darker_green'), 'Troll', blocks=True,
+                                 render_order=RenderOrder.ACTOR, fighter=fighter_component, ai=ai_component)
 
             entities.append(monster)
 
     for i in range(number_of_items):
-        x = randint(room.x1 + 1, room.x2 -1)
-        y = randint(room.y1 +1, room.y2 -1)
+        x = randint(room.x1 + 1, room.x2 - 1)
+        y = randint(room.y1 + 1, room.y2 - 1)
 
-        if not any ([entity for entity in entities if entity.x == x and entity.y == y]):
-            item_component = Item(use_function=heal, amount = 4)
-            item = Entity(x, y, '!', colors.get('violet'), 'Healing Potion', render_order=RenderOrder.ITEM, item=item_component)
+        if not any([entity for entity in entities if entity.x == x and entity.y == y]):
+            item_chance = randint(0, 100)
 
+            if item_chance < 70:
+                item_component = Item(use_function=heal, amount=4)
+                item = Entity(x, y, '!', colors.get('violet'), 'Healing Potion', render_order=RenderOrder.ITEM,
+                              item=item_component)
+            elif item_chance < 85:
+                item_component = Item(use_function=cast_fireball, targeting=True, targeting_message=Message(
+                    'Left-click a tile to cast Fireball, or right-click to cancel.', colors.get('light_cyan')),
+                                      damage=12, radius=3)
+                item = Entity(x, y, '#', colors.get('red'), 'Scroll of Fireball', render_order=RenderOrder.ITEM,
+                              item=item_component)
+            else:
+                item_component = Item(use_function=cast_lightning, damage=20, maximum_range=5)
+                item = Entity(x, y, '#', colors.get('yellow'), 'Scroll of Lightning', render_order=RenderOrder.ITEM,
+                              item=item_component)
             entities.append(item)
 
-def make_map(game_map, max_rooms, room_min_size, room_max_size, map_width, map_height, player, entities, max_monsters_per_room, max_items_per_room, colors):
+
+def make_map(game_map, max_rooms, room_min_size, room_max_size, map_width, map_height, player, entities,
+             max_monsters_per_room, max_items_per_room, colors):
     rooms = []
     num_rooms = 0
 
@@ -95,8 +114,8 @@ def make_map(game_map, max_rooms, room_min_size, room_max_size, map_width, map_h
         w = randint(room_min_size, room_max_size)
         h = randint(room_min_size, room_max_size)
         # random position without going out of bounds
-        x = randint(0, map_width - w -1)
-        y = randint(0, map_height - h -1)
+        x = randint(0, map_width - w - 1)
+        y = randint(0, map_height - h - 1)
 
         new_room = Rect(x, y, w, h)
         # run through the other rooms and see if intersect
@@ -121,7 +140,7 @@ def make_map(game_map, max_rooms, room_min_size, room_max_size, map_width, map_h
                 # connect with tunnels
 
                 # center coords of prev room
-                (prev_x, prev_y) = rooms[num_rooms -1].center()
+                (prev_x, prev_y) = rooms[num_rooms - 1].center()
 
                 # coin flip
                 if randint(0, 1) == 1:
