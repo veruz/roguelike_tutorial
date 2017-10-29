@@ -102,9 +102,9 @@ def cast_confusion(*args, **kwargs):
             confused_ai.owner = entity
             entity.ai = confused_ai
 
-            results.append({'consumed': True, 'message':
-                Message('The eyes of the {0} look vacant and it starts to stumble around!'.format(entity.name),
-                        colors.get('light_green'))})
+            results.append({'consumed': True, 'message': Message(
+                'The eyes of the {0} look vacant and it starts to stumble around!'.format(entity.name),
+                colors.get('light_green'))})
 
             break
     else:
