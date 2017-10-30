@@ -1,41 +1,29 @@
 import tdl
 
-from loader_functions.initialize_new_game import get_constants
-from components.fighter import Fighter
-from components.inventory import Inventory
-from entity import Entity, get_blocking_entities_at_location
-from input_handlers import handle_keys, handle_mouse
-from map_utils import make_map, GameMap
-from render_functions import clear_all, render_all, RenderOrder
+from tcod import image_load
+
+from loader_functions.initialize_new_game import get_constants, get_game_variables
+from loader_functions.data_loaders import load_game, save_game
+
+from entity import get_blocking_entities_at_location
+from input_handlers import handle_keys, handle_mouse, handle_main_menu
+from render_functions import clear_all, render_all
 from game_states import GameStates
 from death_functions import kill_player, kill_monster
-from game_messages import MessageLog, Message
+from game_messages import Message
+from menu import main_menu, message_box
 
 
-def main():
-    constants = get_constants()
-
-
-    fighter_component = Fighter(hp=30, defense=10, power=5)
-    inventory_component = Inventory(26)
-    player = Entity(0, 0, '@', (255, 255, 255), 'Player', blocks=True, render_order=RenderOrder.ACTOR,
-                    fighter=fighter_component, inventory=inventory_component)
-    entities = [player]
-
+def play_game(player, entities, game_map, message_log, game_state, root_console, con, panel, constants):
     tdl.set_font('arial10x10.png', greyscale=True, altLayout=True)
 
     root_console = tdl.init(constants['screen_width'], constants['screen_height'], constants['window_title'])
     con = tdl.Console(constants['screen_width'], constants['screen_height'])
     panel = tdl.Console(constants['screen_width'], constants['panel_height'])
 
-    game_map = GameMap(constants['map_width'], constants['map_height'])
-    make_map(game_map, constants['max_rooms'], constants['room_min_size'], constants['room_max_size'],
-             constants['map_width'], constants['map_height'], player, entities, constants['max_monsters_per_room'],
-             constants['max_items_per_room'], constants['colors'])
-
     fov_recompute = True
 
-    message_log = MessageLog(constants['message_x'], constants['message_width'], constants['message_height'])
+    player, entities, game_map, message_log, game_state = get_game_variables(constants)
 
     mouse_coordinates = (0, 0)
 
@@ -232,6 +220,75 @@ def main():
                         break
             else:
                 game_state = GameStates.PLAYER_TURN
+
+
+def main():
+    constants = get_constants()
+
+    tdl.set_font('arial10x10.png', greyscale=True, altLayout=True)
+
+    root_console = tdl.init(constants['screen_width'], constants['screen_height'], constants['window_title'])
+    con = tdl.Console(constants['screen_width'], constants['screen_height'])
+    panel = tdl.Console(constants['screen_width'], constants['panel_height'])
+
+    player = None
+    entities = []
+    game_map = None
+    message_log = None
+    game_state = None
+
+    show_main_menu = True
+    show_load_error_message = False
+
+    main_menu_background_image = image_load('menu_background.png')
+
+    while not tdl.event.is_window_closed():
+        for event in tdl.event.get():
+            if event.type == 'KEYDOWN':
+                user_input = event
+                break
+        else:
+            user_input = None
+
+        if show_main_menu:
+            main_menu(con, root_console, main_menu_background_image, constants['screen_width'],
+                      constants['screen_height'], constants['colors'])
+
+            if show_load_error_message:
+                message_box(con, root_console, 'No save game to load', 50, constants['screen_width'],
+                            constants['screen_height'])
+
+            tdl.flush()
+
+            action = handle_main_menu(user_input)
+
+            new_game = action.get('new_game')
+            load_saved_game = action.get('load_game')
+            exit_game = action.get('exit')
+
+            if show_load_error_message and (new_game or load_saved_game or exit_game):
+                show_load_error_message = False
+            elif new_game:
+                player, entities, game_map, message_log, game_state = get_game_variables(constants)
+                game_state = GameStates.PLAYER_TURN
+
+                show_main_menu = False
+            elif load_saved_game:
+                try:
+                    player, entities, game_map, message_log, game_state = load_game()
+                    show_main_menu = False
+                except FileNotFoundError:
+                    show_load_error_message = True
+            elif exit_game:
+                break
+
+        else:
+            root_console.clear()
+            con.clear()
+            panel.clear()
+            play_game(player, entities, game_map, message_log, game_state, root_console, con, panel, constants)
+
+            show_main_menu = True
 
 
 if __name__ == '__main__':

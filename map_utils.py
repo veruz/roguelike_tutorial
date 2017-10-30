@@ -100,7 +100,7 @@ def place_entities(room, entities, max_monsters_per_room, max_items_per_room, co
             elif item_chance < 90:
                 item_component = Item(use_function=cast_confusion, targeting=True, targeting_message=Message(
                     'Left-click to confuse and enemy, or right-click to cancel.', colors.get('light_cyan')))
-                item = Entity(x, y, '#', colors.get('light_pink'), 'Scroll of Confusion', render_order=RenderOrder.Item,
+                item = Entity(x, y, '#', colors.get('light_pink'), 'Scroll of Confusion', render_order=RenderOrder.ITEM,
                               item=item_component)
             else:
                 item_component = Item(use_function=cast_lightning, damage=20, maximum_range=5)
