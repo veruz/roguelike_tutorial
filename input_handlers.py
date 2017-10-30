@@ -31,6 +31,20 @@ def handle_inventory_keys(user_input):
         return {'exit': True}
 
 
+def handle_main_menu(user_input):
+    if user_input:
+        key_char = user_input.char
+
+        if key_char == 'a':
+            return {'new_game': True}
+        elif key_char == 'b':
+            return {'load_game': True}
+        elif key_char == 'c':
+            return {'quit': True}
+
+    return {}
+
+
 def handle_player_turn_keys(user_input):
     key_char = user_input.char
 
