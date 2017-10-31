@@ -12,6 +12,7 @@ from game_states import GameStates
 from death_functions import kill_player, kill_monster
 from game_messages import Message
 from menu import main_menu, message_box
+from map_utils import next_floor
 
 
 def play_game(player, entities, game_map, message_log, game_state, root_console, con, panel, constants):
@@ -71,6 +72,7 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
         pickup = action.get('pickup')
         show_inventory = action.get('show_inventory')
         inventory_index = action.get('inventory_index')
+        take_stairs = action.get('take_stairs')
         drop_inventory = action.get('drop_inventory')
         exit = action.get('exit')
         fullscreen = action.get('fullscreen')
@@ -125,6 +127,17 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
 
             elif game_state == GameStates.DROP_INVENTORY:
                 player_turn_results.extend(player.inventory.drop_item(item, constants['colors']))
+
+        if take_stairs and game_state == GameStates.PLAYER_TURN:
+            for entity in entities:
+                if entity.stairs and entity.x == player.x and entity.y == player.y:
+                    game_map, entities = next_floor(player, message_log, entity.stairs.floor, constants)
+                    fov_recompute = True
+                    con.clear()
+
+                    break
+            else:
+                message_log.add_message(Message('There are no stairs here.', constants['colors'].get('yellow')))
 
         if game_state == GameStates.TARGETING:
             if left_click:
