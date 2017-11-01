@@ -73,6 +73,7 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
         show_inventory = action.get('show_inventory')
         inventory_index = action.get('inventory_index')
         take_stairs = action.get('take_stairs')
+        level_up = action.get('level_up')
         drop_inventory = action.get('drop_inventory')
         exit = action.get('exit')
         fullscreen = action.get('fullscreen')
@@ -139,6 +140,17 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
             else:
                 message_log.add_message(Message('There are no stairs here.', constants['colors'].get('yellow')))
 
+        if level_up:
+            if level_up == 'hp':
+                player.fighter.max_hp += 20
+                player.fighter.hp += 20
+            elif level_up == 'str':
+                player.fighter.power += 1
+            elif level_up == 'def':
+                player.fighter.defense += 1
+
+            game_state = previous_game_state
+
         if game_state == GameStates.TARGETING:
             if left_click:
                 target_x, target_y = left_click
@@ -169,6 +181,7 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
             item_dropped = player_turn_result.get('item_dropped')
             targeting = player_turn_result.get('targeting')
             targeting_cancelled = player_turn_result.get('targeting_cancelled')
+            xp = player_turn_result.get('xp')
 
             if message:
                 message_log.add_message(message)
@@ -206,6 +219,15 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
                 game_state = previous_game_state
 
                 message_log.add_message(Message('Targeting cancelled'))
+
+            if xp:
+                leveled_up = player.level.add_xp(xp)
+                message_log.add_message(Message('You gain {0} experience points.'.format(xp)))
+
+                if leveled_up:
+                    message_log.add_message(Message('Your battle skills grow stronger! You reached level {0}'.format(player.level.current_level) + '!', constants['colors'].get('yellow')))
+                    previous_game_state = game_state
+                    game_state = GameStates.LEVEL_UP
 
         if game_state == GameStates.ENEMY_TURN:
             for entity in entities:

@@ -11,6 +11,8 @@ def handle_keys(user_input, game_state):
             return handle_targeting_keys(user_input)
         elif game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
             return handle_inventory_keys(user_input)
+        elif game_state == GameStates.LEVEL_UP:
+            return handle_level_up_menu(user_input)
     return {}
 
 
@@ -41,6 +43,19 @@ def handle_main_menu(user_input):
             return {'load_game': True}
         elif key_char == 'c':
             return {'quit': True}
+
+    return {}
+
+def handle_level_up_menu(user_input):
+    if user_input:
+        key_char = user_input.char
+
+        if key_char == 'a':
+            return {'level_up': 'hp'}
+        elif key_char == 'b':
+            return {'level_up': 'str'}
+        elif key_char == 'c':
+            return {'level_up': 'def'}
 
     return {}
 
