@@ -69,11 +69,13 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
         mouse_action = handle_mouse(user_mouse_input)
 
         move = action.get('move')
+        wait = action.get('wait')
         pickup = action.get('pickup')
         show_inventory = action.get('show_inventory')
         inventory_index = action.get('inventory_index')
         take_stairs = action.get('take_stairs')
         level_up = action.get('level_up')
+        show_character_screen = action.get('show_character_screen')
         drop_inventory = action.get('drop_inventory')
         exit = action.get('exit')
         fullscreen = action.get('fullscreen')
@@ -100,6 +102,9 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
                     fov_recompute = True
 
                 game_state = GameStates.ENEMY_TURN
+
+        elif wait:
+            game_state = GameStates.ENEMY_TURN
         elif pickup and game_state == GameStates.PLAYER_TURN:
             for entity in entities:
                 if entity.item and entity.x == player.x and entity.y == player.y:
@@ -151,6 +156,10 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
 
             game_state = previous_game_state
 
+        if show_character_screen:
+            previous_game_state = game_state
+            game_state = GameStates.CHARACTER_SCREEN
+
         if game_state == GameStates.TARGETING:
             if left_click:
                 target_x, target_y = left_click
@@ -163,7 +172,7 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
                 player_turn_results.append({'targeting_cancelled': True})
 
         if exit:
-            if game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
+            if game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY, GameStates.CHARACTER_SCREEN):
                 game_state = previous_game_state
             elif game_state == GameStates.TARGETING:
                 player_turn_results.append({'targeting_canceled': True})
@@ -225,7 +234,8 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
                 message_log.add_message(Message('You gain {0} experience points.'.format(xp)))
 
                 if leveled_up:
-                    message_log.add_message(Message('Your battle skills grow stronger! You reached level {0}'.format(player.level.current_level) + '!', constants['colors'].get('yellow')))
+                    message_log.add_message(Message('Your battle skills grow stronger! You reached level {0}'.format(
+                        player.level.current_level) + '!', constants['colors'].get('yellow')))
                     previous_game_state = game_state
                     game_state = GameStates.LEVEL_UP
 

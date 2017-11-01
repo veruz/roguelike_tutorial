@@ -13,6 +13,9 @@ def handle_keys(user_input, game_state):
             return handle_inventory_keys(user_input)
         elif game_state == GameStates.LEVEL_UP:
             return handle_level_up_menu(user_input)
+        elif game_state == GameStates.CHARACTER_SCREEN:
+            return handle_character_screen(user_input)
+
     return {}
 
 
@@ -46,6 +49,7 @@ def handle_main_menu(user_input):
 
     return {}
 
+
 def handle_level_up_menu(user_input):
     if user_input:
         key_char = user_input.char
@@ -58,6 +62,11 @@ def handle_level_up_menu(user_input):
             return {'level_up': 'def'}
 
     return {}
+
+
+def handle_character_screen(user_input):
+    if user_input.key == 'ESCAPE':
+        return {'exit': True}
 
 
 def handle_player_turn_keys(user_input):
@@ -80,6 +89,8 @@ def handle_player_turn_keys(user_input):
         return {'move': (-1, 1)}
     elif key_char == 'n':
         return {'move': (1, 1)}
+    elif key_char == 'z':
+        return {'wait': True}
 
     if key_char == 'g':
         return {'pickup': True}
@@ -89,6 +100,8 @@ def handle_player_turn_keys(user_input):
         return {'drop_inventory': True}
     elif key_char == '.' and user_input.shift:
         return {'take_stairs': True}
+    elif key_char == 'c':
+        return {'show_character_screen': True}
 
     if user_input.key == 'ENTER' and user_input.alt:
         # Alt+Enter: Fullscreen
