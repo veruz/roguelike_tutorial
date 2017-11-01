@@ -9,7 +9,7 @@ class Entity:
     """
 
     def __init__(self, x, y, char, color, name, blocks=False, render_order=RenderOrder.CORPSE, fighter=None, ai=None,
-                 item=None, inventory=None, stairs=None):
+                 item=None, inventory=None, stairs=None, level=None):
         self.x = x
         self.y = y
         self.char = char
@@ -22,6 +22,7 @@ class Entity:
         self.item = item
         self.inventory = inventory
         self.stairs = stairs
+        self.level = level
 
         if self.fighter:
             self.fighter.owner = self
@@ -38,6 +39,9 @@ class Entity:
         if self.stairs:
             self.stairs.owner = self
 
+        if self.level:
+            self.level.owner = self
+
     def move(self, dx, dy):
         # Move entity by amount
         self.x += dx
@@ -49,8 +53,9 @@ class Entity:
             dx = path[0][0] - self.x
             dy = path[0][1] - self.y
 
-            if game_map.walkable[path[0][0], path[0][1]] and not get_blocking_entities_at_location(entities, self.x + dx,
-                                                                                               self.y + dy):
+            if game_map.walkable[path[0][0], path[0][1]] and not get_blocking_entities_at_location(entities,
+                                                                                                   self.x + dx,
+                                                                                                   self.y + dy):
                 self.move(dx, dy)
 
     def distance(self, x, y):
