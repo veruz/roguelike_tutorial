@@ -24,7 +24,7 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
 
     fov_recompute = True
 
-    player, entities, game_map, message_log, game_state = get_game_variables(constants)
+    player, entities, game_map, ccmessage_log, game_state = get_game_variables(constants)
 
     mouse_coordinates = (0, 0)
 
@@ -175,7 +175,7 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
             if game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY, GameStates.CHARACTER_SCREEN):
                 game_state = previous_game_state
             elif game_state == GameStates.TARGETING:
-                player_turn_results.append({'targeting_canceled': True})
+                player_turn_results.append({'targeting_cancelled': True})
             else:
                 return True
 
@@ -217,7 +217,7 @@ def play_game(player, entities, game_map, message_log, game_state, root_console,
                 game_state = GameStates.ENEMY_TURN
 
             if targeting:
-                previous_game_state == GameStates.PLAYER_TURN
+                previous_game_state = GameStates.PLAYER_TURN
                 game_state = GameStates.TARGETING
 
                 targeting_item = targeting

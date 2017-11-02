@@ -56,6 +56,7 @@ def main_menu(con, root_console, background_image, screen_width, screen_height, 
 
     menu(con, root_console, '', ['Play a new game', 'Continue last game', 'Quit'], 24, screen_width, screen_height)
 
+
 def level_up_menu(con, root_console, header, player, menu_width, screen_width, screen_height):
     options = ['Constitution (+20 HP, from {0})'.format(player.fighter.max_hp),
                'Strength (+1 attack, from {0})'.format(player.fighter.power),
@@ -63,7 +64,9 @@ def level_up_menu(con, root_console, header, player, menu_width, screen_width, s
 
     menu(con, root_console, header, options, menu_width, screen_width, screen_height)
 
-def character_screen(root_console, player, character_screen_width, character_screen_height, screen_width, screen_height):
+
+def character_screen(root_console, player, character_screen_width, character_screen_height, screen_width,
+                     screen_height):
     window = tdl.Console(character_screen_width, character_screen_height)
 
     window.draw_rect(0, 0, character_screen_width, character_screen_height, None, fg=(255, 255, 255), bg=None)
